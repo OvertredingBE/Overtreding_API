@@ -17,6 +17,45 @@ class DbHandler {
         $this->conn = mysqli_connect("localhost", "root", "", "OvertredingDB"); //$db->connect();
     }
 
+    public function getTexts() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Texts`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+
+    public function getRights() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Rights`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+
+    public function getAlchohol() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Alchohol`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+    public function getDrugs() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Drugs`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+
+    public function getSpeed() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Speed`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+
     public function getLastId() {
         return mysqli_insert_id($this->conn);
     }
@@ -30,12 +69,12 @@ class DbHandler {
             $objPHPExcel = $objReader->load($inputFileName);
         } catch(Exception $e) {
             die('Error loading file "'.pathinfo($inputFileName,PATHINFO_BASENAME).'": '.$e->getMessage());
-        }   
+        }
 
         $this->mapTextIds($objPHPExcel);
 
-     
-   
+
+
         $textResult = $this->createTextsBulk($objPHPExcel);
         if(!$textResult){
             return FALSE;
@@ -60,7 +99,7 @@ class DbHandler {
         if(!$othersResult){
             return FALSE;
         }
-        
+
         $rightsResult = $this->createRightsBulk($objPHPExcel);
         if(!$rightsResult){
             return FALSE;
@@ -70,8 +109,8 @@ class DbHandler {
     }
 
     public function createTextsBulk($objPHPExcel) {
-        $sheet = $objPHPExcel->getSheet(5); 
-        $highestRow = $sheet->getHighestDataRow(); 
+        $sheet = $objPHPExcel->getSheet(5);
+        $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
           NULL,
@@ -92,8 +131,8 @@ class DbHandler {
     }
 
     public function createSpeedBulk($objPHPExcel) {
-        $sheet = $objPHPExcel->getSheet(1); 
-        $highestRow = $sheet->getHighestDataRow(); 
+        $sheet = $objPHPExcel->getSheet(1);
+        $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
           NULL,
@@ -120,8 +159,8 @@ class DbHandler {
     }
 
     public function createAlchBulk($objPHPExcel) {
-        $sheet = $objPHPExcel->getSheet(2); 
-        $highestRow = $sheet->getHighestDataRow(); 
+        $sheet = $objPHPExcel->getSheet(2);
+        $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
           NULL,
@@ -146,8 +185,8 @@ class DbHandler {
     }
 
     public function createDrugshBulk($objPHPExcel) {
-        $sheet = $objPHPExcel->getSheet(3); 
-        $highestRow = $sheet->getHighestDataRow(); 
+        $sheet = $objPHPExcel->getSheet(3);
+        $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
           NULL,
@@ -171,8 +210,8 @@ class DbHandler {
     }
 
     public function createOtherBulk($objPHPExcel) {
-        $sheet = $objPHPExcel->getSheet(4); 
-        $highestRow = $sheet->getHighestDataRow(); 
+        $sheet = $objPHPExcel->getSheet(4);
+        $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
           NULL,
@@ -214,8 +253,8 @@ class DbHandler {
     }
     public function mapTextIds($objPHPExcel){
         $this->textIds = [];
-        $sheet = $objPHPExcel->getSheet(5); 
-        $highestRow = $sheet->getHighestDataRow(); 
+        $sheet = $objPHPExcel->getSheet(5);
+        $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
           NULL,
@@ -228,8 +267,8 @@ class DbHandler {
     }
 
     public function createRightsBulk($objPHPExcel) {
-        $sheet = $objPHPExcel->getSheet(0); 
-        $highestRow = $sheet->getHighestDataRow(); 
+        $sheet = $objPHPExcel->getSheet(0);
+        $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
           NULL,
@@ -281,7 +320,7 @@ class DbHandler {
             case '40-…':
             return 4;
             break;
-            
+
             default:
             return -1;
             break;
@@ -298,7 +337,7 @@ class DbHandler {
             return 1;
             break;
 
-            default:    
+            default:
             return -1;
             break;
         }
@@ -314,7 +353,7 @@ class DbHandler {
             return 1;
             break;
 
-            default:    
+            default:
             return -1;
             break;
         }
@@ -330,44 +369,36 @@ class DbHandler {
             return 1;
             break;
 
-            case '0,50 - 0,80 promille':
+            case '0,80 - 1,00 promille':
             return 2;
             break;
 
-            case '0,80 - 1,00 promille':
+            case '1,00 - 1,14 promille':
             return 3;
             break;
 
-            case '0,50 - 0,80 promille':
+            case '1,14 - 1,48 promille':
             return 4;
             break;
 
-            case '1,00 - 1,14 promille':
+            case '1,48 promille - ...':
             return 5;
             break;
 
-            case '1,14 - 1,48 promille':
+            case 'Weigering ademtest of analyse zonder wettige reden':
             return 6;
             break;
 
-            case '1,48 promille - ...':
+            case 'Dronkenschap':
             return 7;
             break;
 
-            case 'Weigering ademtest of analyse zonder wettige reden':
+            case 'U bent reeds eerder betrapt op alcoholintoxicatie van meer dan 0,8 promille of voor dronkenschap en wordt nu opnieuw betrapt op een alcoholintoxicatie van meer dan of 0,8 promille':
             return 8;
             break;
 
-            case 'Dronkenschap':
-            return 9;
-            break;
-
-            case 'U bent reeds eerder betrapt op alcoholintoxicatie van meer dan 0,8 promille of voor dronkenschap en wordt nu opnieuw betrapt op een alcoholintoxicatie van meer dan of 0,8 promille':
-            return 10;
-            break;
-
             case 'U bent reeds eerder betrapt op  alcoholintoxicatie van meer dan 0,8 promille of voor dronkenschap en wordt nu opnieuw betrapt op dronkenschap':
-            return 11;
+            return 9;
             break;
 
             default:
