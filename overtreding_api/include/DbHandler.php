@@ -10,54 +10,12 @@ class DbHandler {
 
     private $conn;
     private $textIds;
+
     function __construct() {
         //require_once dirname(__FILE__) . './DbConnect.php';
         // opening db connection
         //$db = new DbConnect();
         $this->conn = mysqli_connect("localhost", "root", "", "OvertredingDB"); //$db->connect();
-    }
-
-    public function getTexts() {
-        $stmt = $this->conn->prepare("SELECT * FROM `Texts`");
-        $stmt->execute();
-        $tasks = $stmt->get_result();
-        $stmt->close();
-        return $tasks;
-    }
-
-    public function getRights() {
-        $stmt = $this->conn->prepare("SELECT * FROM `Rights`");
-        $stmt->execute();
-        $tasks = $stmt->get_result();
-        $stmt->close();
-        return $tasks;
-    }
-
-    public function getAlchohol() {
-        $stmt = $this->conn->prepare("SELECT * FROM `Alchohol`");
-        $stmt->execute();
-        $tasks = $stmt->get_result();
-        $stmt->close();
-        return $tasks;
-    }
-    public function getDrugs() {
-        $stmt = $this->conn->prepare("SELECT * FROM `Drugs`");
-        $stmt->execute();
-        $tasks = $stmt->get_result();
-        $stmt->close();
-        return $tasks;
-    }
-
-    public function getSpeed() {
-        $stmt = $this->conn->prepare("SELECT * FROM `Speed`");
-        $stmt->execute();
-        $tasks = $stmt->get_result();
-        $stmt->close();
-        return $tasks;
-    }
-
-    public function getLastId() {
-        return mysqli_insert_id($this->conn);
     }
 
     function bulkInsert() {
@@ -73,8 +31,6 @@ class DbHandler {
 
         $this->mapTextIds($objPHPExcel);
 
-
-
         $textResult = $this->createTextsBulk($objPHPExcel);
         if(!$textResult){
             return FALSE;
@@ -84,12 +40,12 @@ class DbHandler {
         if(!$speedResult){
             return FALSE;
         }
-
+        //
         $alchResult = $this->createAlchBulk($objPHPExcel);
         if(!$alchResult){
             return FALSE;
         }
-
+        //
         $drugsResult = $this->createDrugshBulk($objPHPExcel);
         if(!$drugsResult){
             return FALSE;
@@ -99,13 +55,36 @@ class DbHandler {
         if(!$othersResult){
             return FALSE;
         }
-
+        //
         $rightsResult = $this->createRightsBulk($objPHPExcel);
         if(!$rightsResult){
             return FALSE;
         }
+        //
+        // return TRUE;
+    }
 
-        return TRUE;
+    public function getTextId($textNr){
+        return $this->textIds[$textNr];
+    }
+
+    public function getLastId() {
+        return mysqli_insert_id($this->conn);
+    }
+
+    public function mapTextIds($objPHPExcel){
+        $this->textIds = [];
+        $sheet = $objPHPExcel->getSheet(5);
+        $highestRow = $sheet->getHighestDataRow();
+        $highestColumn = $sheet->getHighestDataColumn();
+        $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
+          NULL,
+          TRUE,
+          FALSE);
+        for ($x = 1; $x < count($sheetArray); $x++) {
+            $this->textIds[$sheetArray[$x][0]] = $x;
+        }
+
     }
 
     public function createTextsBulk($objPHPExcel) {
@@ -251,20 +230,6 @@ class DbHandler {
         $stmt->close();
         return TRUE;
     }
-    public function mapTextIds($objPHPExcel){
-        $this->textIds = [];
-        $sheet = $objPHPExcel->getSheet(5);
-        $highestRow = $sheet->getHighestDataRow();
-        $highestColumn = $sheet->getHighestDataColumn();
-        $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
-          NULL,
-          TRUE,
-          FALSE);
-        $stmt = $this->conn->prepare("INSERT INTO `Texts`(`body`) VALUES (?)");
-        for ($x = 1; $x < count($sheetArray); $x++) {
-            $this->textIds[$sheetArray[$x][0]] = $x;
-        }
-    }
 
     public function createRightsBulk($objPHPExcel) {
         $sheet = $objPHPExcel->getSheet(0);
@@ -274,7 +239,7 @@ class DbHandler {
           NULL,
           TRUE,
           FALSE);
-        $stmt = $this->conn->prepare("INSERT INTO `Rights`(`type`, `text`) VALUES (?, ?)");
+        $stmt = $this->conn->prepare("INSERT INTO `Rights`(`type`,`body`) VALUES (?,?)");
         for ($x = 1; $x < count($sheetArray); $x++) {
             $text = $sheetArray[$x][0];
             $type = 0;
@@ -299,8 +264,60 @@ class DbHandler {
         return TRUE;
     }
 
-    public function getTextId($textNr){
-        return $this->textIds[$textNr];
+
+
+    public function getTexts() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Texts`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+
+    public function getRights() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Rights`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+
+    public function getAlchohol() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Alchohol`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+    public function getDrugs() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Drugs`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+
+    public function getSpeed() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Speed`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+
+    public function getOther() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Other`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
+    }
+    public function getOtherTags() {
+        $stmt = $this->conn->prepare("SELECT * FROM `Other_Tags`");
+        $stmt->execute();
+        $tasks = $stmt->get_result();
+        $stmt->close();
+        return $tasks;
     }
 
     public function parseExceed($exceedStr){

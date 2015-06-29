@@ -8,35 +8,32 @@ require '.././libs/PHPExcel/Classes/PHPExcel.php';
 
 $app = new \Slim\Slim();
 
-$app->options('/texts', function () use($app) {
-   $response = $app->response();
-   $response->header('Access-Control-Allow-Origin', 'http://localhost:8100');
-   $response->header('Access-Control-Allow-Methods', 'GET, POST');
-   $response->header('Access-Control-Allow-Headers', 'accept, origin, content-type');
-});
+header('Access-Control-Allow-Origin: *');
 
-$app->get('/populateDB', function() {
+$app->get('/populateDB', function() use ($app) {
 	$response = array();
     $db = new DbHandler();
     $result = $db->bulkInsert();
-    if($result)  {
-    	$response["error"] = false;
-    }
-    else{
-    	$response["error"] = true;
-    }
+    // $resposne["asd"] = $result;
+    // if($result)  {
+    // 	$response["error"] = false;
+    // }
+    // else{
+    // 	$response["error"] = true;
+    // }
 
     echoResponse(200, $response);
 });
 
-$app->get('/db', function() {
+$app->get('/db', function() use ($app) {
     $response = array();
     $response["rights"] = array();
     $response["texts"] = array();
     $response["alcohol"] = array();
     $response["drugs"] = array();
     $response["speed"] = array();
-
+    $response["other"] = array();
+    $response["other_tags"] = array();
     $db = new DbHandler();
     $result = $db->getRights();
     while ($row = $result->fetch_assoc()) {
@@ -92,6 +89,28 @@ $app->get('/db', function() {
         }
         array_push($response["speed"], $tmp);
     }
+
+    $result = $db->getOther();
+    while ($row = $result->fetch_assoc()) {
+        $tmp = array();
+        $keys = array_keys($row);
+
+        foreach($keys as $key) {
+            $tmp[$key] = $row[$key];
+        }
+        array_push($response["other"], $tmp);
+    }
+    $result = $db->getOtherTags();
+    while ($row = $result->fetch_assoc()) {
+        $tmp = array();
+        $keys = array_keys($row);
+
+        foreach($keys as $key) {
+            $tmp[$key] = $row[$key];
+        }
+        array_push($response["other_tags"], $tmp);
+    }
+
 
     echoResponse(200, $response);
 });
