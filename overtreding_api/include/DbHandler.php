@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Class to handle all db operations
- * This class will have CRUD methods for database tables
- *
- * @author Ravi Tamada
- */
+* Class to handle all db operations
+* This class will have CRUD methods for database tables
+*
+* @author Ravi Tamada
+*/
 class DbHandler {
 
     private $conn;
@@ -16,6 +16,43 @@ class DbHandler {
         // opening db connection
         //$db = new DbConnect();
         $this->conn = mysqli_connect("localhost", "root", "", "OvertredingDB"); //$db->connect();
+    }
+
+
+    function truncateAll(){
+        $names = array("Alchohol", "Drugs","Other", "Other_Tags", "Rights", "Speed","Texts");
+        for ($x = 0; $x < count($names); $x++) {
+            $table_name = $names[$x];
+            $sql = "TRUNCATE TABLE ".$table_name;
+            $stmt = $this->conn->prepare($sql);
+            $result = $stmt->execute();
+            if ($result) {
+            } else {
+                return FALSE;
+            }
+            $stmt->close();
+        }
+
+        return TRUE;
+    }
+
+    function resetAutoIncrementAll(){
+        $names = array("Alchohol", "Drugs","Other", "Other_Tags", "Rights", "Speed","Texts");
+
+        for ($x = 0; $x < count($names); $x++) {
+            $stmt->close();
+            $table_name = $names[$x];
+            $sql = "ALTER TABLE ".$table_name." AUTO_INCREMENT = 1";
+            $stmt = $this->conn->prepare($sql);
+            $result = $stmt->execute();
+            if ($result) {
+            } else {
+                return FALSE;
+            }
+            $stmt->close();
+        }
+
+        return TRUE;
     }
 
     function bulkInsert() {
@@ -29,7 +66,9 @@ class DbHandler {
             die('Error loading file "'.pathinfo($inputFileName,PATHINFO_BASENAME).'": '.$e->getMessage());
         }
 
+
         $this->mapTextIds($objPHPExcel);
+        // print_r($this->textIds);
 
         $textResult = $this->createTextsBulk($objPHPExcel);
         if(!$textResult){
@@ -40,13 +79,13 @@ class DbHandler {
         if(!$speedResult){
             return FALSE;
         }
-        //
+
         $alchResult = $this->createAlchBulk($objPHPExcel);
         if(!$alchResult){
             return FALSE;
         }
-        //
-        $drugsResult = $this->createDrugshBulk($objPHPExcel);
+
+        $drugsResult = $this->createDrugsBulk($objPHPExcel);
         if(!$drugsResult){
             return FALSE;
         }
@@ -56,12 +95,12 @@ class DbHandler {
             return FALSE;
         }
         //
-        $rightsResult = $this->createRightsBulk($objPHPExcel);
-        if(!$rightsResult){
-            return FALSE;
-        }
-        //
-        // return TRUE;
+        // $rightsResult = $this->createRightsBulk($objPHPExcel);
+        // if(!$rightsResult){
+        //     return FALSE;
+        // }
+
+        return TRUE;
     }
 
     public function getTextId($textNr){
@@ -78,9 +117,9 @@ class DbHandler {
         $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
-          NULL,
-          TRUE,
-          FALSE);
+        NULL,
+        TRUE,
+        FALSE);
         for ($x = 1; $x < count($sheetArray); $x++) {
             $this->textIds[$sheetArray[$x][0]] = $x;
         }
@@ -92,9 +131,9 @@ class DbHandler {
         $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
-          NULL,
-          TRUE,
-          FALSE);
+        NULL,
+        TRUE,
+        FALSE);
 
         $stmt = $this->conn->prepare("INSERT INTO `Texts`(`body`) VALUES (?)");
         for ($x = 1; $x < count($sheetArray); $x++) {
@@ -106,6 +145,7 @@ class DbHandler {
             }
         }
         $stmt->close();
+        print("Texts puplated\n");
         return TRUE;
     }
 
@@ -114,9 +154,9 @@ class DbHandler {
         $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
-          NULL,
-          TRUE,
-          FALSE);
+        NULL,
+        TRUE,
+        FALSE);
 
         $stmt = $this->conn->prepare("INSERT INTO `Speed`(`exceed`, `road`, `text_id_1`, `text_id_2`, `text_id_3`) VALUES (?,?,?,?,?)");
 
@@ -134,6 +174,7 @@ class DbHandler {
             }
         }
         $stmt->close();
+        print("Speed puplated\n");
         return TRUE;
     }
 
@@ -142,9 +183,9 @@ class DbHandler {
         $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
-          NULL,
-          TRUE,
-          FALSE);
+        NULL,
+        TRUE,
+        FALSE);
         $stmt = $this->conn->prepare("INSERT INTO `Alchohol`(`intoxication`, `text_id_1`, `text_id_2`, `text_id_3`) VALUES (?,?,?,?)");
         for ($x = 1; $x < count($sheetArray); $x++) {
             $intoxicationId =  $this->parseIntoxication($sheetArray[$x][0]);
@@ -160,17 +201,18 @@ class DbHandler {
 
         }
         $stmt->close();
+        print("Alchohol puplated\n");
         return TRUE;
     }
 
-    public function createDrugshBulk($objPHPExcel) {
+    public function createDrugsBulk($objPHPExcel) {
         $sheet = $objPHPExcel->getSheet(3);
         $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
-          NULL,
-          TRUE,
-          FALSE);
+        NULL,
+        TRUE,
+        FALSE);
         $stmt = $this->conn->prepare("INSERT INTO `Drugs`(`blood_test`, `text_id_1`, `text_id_2`, `text_id_3`) VALUES (?,?,?,?)");
         for ($x = 1; $x < count($sheetArray); $x++) {
             $intoxicationId = $this->parseBloodTest($sheetArray[$x][0]);
@@ -185,6 +227,8 @@ class DbHandler {
             }
         }
         $stmt->close();
+        print("Drugs puplated\n");
+
         return TRUE;
     }
 
@@ -193,10 +237,11 @@ class DbHandler {
         $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
-          NULL,
-          TRUE,
-          FALSE);
+        NULL,
+        TRUE,
+        FALSE);
         $stmt = $this->conn->prepare("INSERT INTO `Other`(`degree`, `description`, `text_id_1`, `text_id_2`, `text_id_3`) VALUES (?,?,?,?,?)");
+        $tagSuccess = TRUE;
         for ($x = 1; $x < count($sheetArray); $x++) {
             $degree = $sheetArray[$x][0];
             $tags = $sheetArray[$x][1];
@@ -207,20 +252,31 @@ class DbHandler {
             $stmt->bind_param("isiii", $degree, $description, $text_id_1, $text_id_2, $text_id_3);
             $result = $stmt->execute();
             $tagsResult = $this->createTagsBulk($tags, $this->getLastId());
+            if($tagsResult){
+
+            }
+            else{
+                $tagSuccess = FALSE;
+            }
             if ($result) {
             } else {
                 return FALSE;
             }
         }
         $stmt->close();
+        print("Others puplated\n");
+        if($tagSuccess){
+            print("Tags puplated\n");
+        }
         return TRUE;
     }
 
     public function createTagsBulk($tagsStr, $offense_id) {
-        $tags = explode(" ", $tagsStr);
+        $tags = explode(";", $tagsStr);
         $stmt = $this->conn->prepare("INSERT INTO `Other_Tags`(`tag_name`, `offense_id`) VALUES (?,?)");
-        for ($x = 1; $x < count($tags); $x++) {
-            $stmt->bind_param("si", $tags[$x], $offense_id);
+        for ($x = 0; $x < count($tags); $x++) {
+            $tag = strtolower((string)$tags[$x]);
+            $stmt->bind_param("si", $tag, $offense_id);
             $result = $stmt->execute();
             if ($result) {
             } else {
@@ -236,9 +292,9 @@ class DbHandler {
         $highestRow = $sheet->getHighestDataRow();
         $highestColumn = $sheet->getHighestDataColumn();
         $sheetArray = $sheet->rangeToArray('A1'.':' . $highestColumn .$highestRow,
-          NULL,
-          TRUE,
-          FALSE);
+        NULL,
+        TRUE,
+        FALSE);
         $stmt = $this->conn->prepare("INSERT INTO `Rights`(`type`,`body`) VALUES (?,?)");
         for ($x = 1; $x < count($sheetArray); $x++) {
             $text = $sheetArray[$x][0];

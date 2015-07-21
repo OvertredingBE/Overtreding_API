@@ -16,7 +16,7 @@ $app->get('/populateDB', function() use ($app) {
 	$response = array();
 	$db = new DbHandler();
 	$result = $db->bulkInsert();
-	// $resposne["asd"] = $result;
+	$response["success"] = $result;
 	// if($result)  {
 	// 	$response["error"] = false;
 	// }
@@ -26,6 +26,15 @@ $app->get('/populateDB', function() use ($app) {
 
 	echoResponse(200, $response);
 });
+
+$app->get('/cleanDB', function() use ($app) {
+	$response = array();
+	$db = new DbHandler();
+	$truncate = $db->truncateAll();
+	$response["truncate"] = $truncate;
+	echoResponse(200, $response);
+});
+
 $app->post('/email', function() {
 	header('Access-Control-Allow-Origin: *');
 
